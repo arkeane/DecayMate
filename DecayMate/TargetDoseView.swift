@@ -52,7 +52,7 @@ struct TargetDoseView: View {
                                 HStack {
                                     Image(systemName: "target")
                                         .foregroundColor(.green)
-                                    Text("Target Dose Needed")
+                                    Text("Target Dose")
                                         .font(.headline)
                                     Spacer()
                                     UnitSelector(selectedUnit: $unit)
