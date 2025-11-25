@@ -104,9 +104,15 @@ struct TargetDoseView: View {
                     }
                 }
             }
-            // Moved .onTapGesture here to cover the entire ZStack (screen)
             .onTapGesture {
                 isInputFocused = false
+            }
+            // Smart Conversion Logic (Updated for iOS 17+)
+            .onChange(of: unit) { oldValue, newValue in
+                if let currentVal = targetDose {
+                    let converted = DecayEngine.shared.convert(currentVal, from: oldValue, to: newValue)
+                    targetDose = (converted * 10000).rounded() / 10000
+                }
             }
             .navigationBarTitleDisplayMode(.inline)
         }

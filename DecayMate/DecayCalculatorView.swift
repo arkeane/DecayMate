@@ -124,9 +124,16 @@ struct DecayCalculatorView: View {
                     }
                 }
             }
-            // Moved .onTapGesture here to cover the entire ZStack (screen)
             .onTapGesture {
                 isInputFocused = false
+            }
+            // Updated syntax for iOS 17+ (using oldValue, newValue)
+            .onChange(of: unit) { oldValue, newValue in
+                if let currentVal = initialActivity {
+                    let converted = DecayEngine.shared.convert(currentVal, from: oldValue, to: newValue)
+                    // Rounding to 4 decimals to avoid float artifacts
+                    initialActivity = (converted * 10000).rounded() / 10000
+                }
             }
             .navigationBarTitleDisplayMode(.inline)
         }
