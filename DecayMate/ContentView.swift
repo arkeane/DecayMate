@@ -7,18 +7,42 @@
 
 import SwiftUI
 
+// MARK: - Main Tab Entry
 struct ContentView: View {
-    var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+    @StateObject private var isotopeStore = IsotopeStore()
+    
+    init() {
+        // Customizing Tab Bar appearance for that "Modern" look
+        let appearance = UITabBarAppearance()
+        appearance.configureWithDefaultBackground()
+        appearance.backgroundColor = UIColor.systemBackground
+        
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
     }
-}
-
-#Preview {
-    ContentView()
+    
+    var body: some View {
+        TabView {
+            DecayCalculatorView(store: isotopeStore)
+                .tabItem {
+                    Label("Decay", systemImage: "waveform.path.ecg")
+                }
+            
+            TargetDoseView(store: isotopeStore)
+                .tabItem {
+                    Label("Target Dose", systemImage: "cross.case.fill")
+                }
+            
+            CustomIsotopeView(store: isotopeStore)
+                .tabItem {
+                    Label("Manager", systemImage: "flask")
+                }
+            
+            InfoView()
+                .tabItem {
+                    Label("About", systemImage: "info.circle")
+                }
+        }
+        .tint(Theme.accent)
+    }
 }
