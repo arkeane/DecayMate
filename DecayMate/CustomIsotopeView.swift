@@ -18,7 +18,6 @@ struct CustomIsotopeView: View {
     
     // Editing State
     @State private var editingId: UUID? = nil
-    
     @FocusState private var isFocused: Bool
     
     enum TimeUnit: String, CaseIterable, Identifiable {
@@ -35,35 +34,28 @@ struct CustomIsotopeView: View {
     
     var body: some View {
         NavigationView {
-            ZStack {
-                Theme.bg.ignoresSafeArea()
-                
-                // Tap to dismiss keyboard
-                Color.clear
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        isFocused = false
-                    }
-                
-                ScrollView {
-                    VStack(spacing: 12) {
-                        
-                        // Editor/Creator Card
-                        ModernCard {
-                            HStack {
-                                Text(editingId == nil ? "Create New Isotope" : "Edit Isotope")
-                                    .font(.headline)
-                                Spacer()
-                                if editingId != nil {
-                                    Button("Cancel") {
-                                        resetForm()
-                                    }
-                                    .font(.caption)
-                                    .foregroundColor(.red)
+            List {
+                // MARK: - Section 1: Creator / Editor
+                Section {
+                    VStack(spacing: 16) {
+                        // Header Logic inside the form
+                        HStack {
+                            Text(editingId == nil ? "Create New Isotope" : "Editing \(name)")
+                                .font(.headline)
+                                .foregroundColor(Theme.accent)
+                            Spacer()
+                            if editingId != nil {
+                                Button("Cancel") {
+                                    withAnimation { resetForm() }
                                 }
+                                .font(.caption)
+                                .foregroundColor(.red)
+                                .buttonStyle(.borderless)
                             }
-                            .padding(.bottom, 4)
-                            
+                        }
+                        
+                        // Input Fields
+                        VStack(spacing: 12) {
                             TextField("Name (e.g. Cobalt-60)", text: $name)
                                 .textFieldStyle(.roundedBorder)
                                 .focused($isFocused)
@@ -84,106 +76,112 @@ struct CustomIsotopeView: View {
                                     }
                                 }
                                 .labelsHidden()
+                                .frame(maxWidth: 80)
                             }
-                            
-                            Button(action: saveIsotope) {
-                                Text(editingId == nil ? "Add to Database" : "Update Isotope")
-                                    .fontWeight(.bold)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(isValid ? Theme.accent : Color.gray)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(12)
-                            }
-                            .disabled(!isValid)
                         }
                         
-                        // Library List Card
-                        ModernCard {
-                            Text("Library")
-                                .font(.headline)
-                            
-                            ForEach(store.isotopes) { iso in
-                                VStack {
-                                    HStack {
-                                        VStack(alignment: .leading) {
-                                            Text(iso.symbol)
-                                                .font(.system(.body, design: .rounded))
-                                                .fontWeight(.bold)
-                                            Text(iso.name)
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Text(iso.halfLifeString)
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                            .padding(.trailing, 8)
-                                        
-                                        // Edit Button
-                                        Button {
-                                            startEditing(iso)
-                                        } label: {
-                                            Image(systemName: "pencil.circle.fill")
-                                                .font(.title2)
-                                                .foregroundColor(Theme.accent)
-                                        }
-                                        
-                                        // Delete Button
-                                        Button {
-                                            deleteIsotope(iso)
-                                        } label: {
-                                            Image(systemName: "trash.circle.fill")
-                                                .font(.title2)
-                                                .foregroundColor(Theme.danger)
-                                        }
-                                    }
-                                    .padding(.vertical, 8)
-                                    
-                                    if iso.id != store.isotopes.last?.id {
-                                        Divider()
-                                    }
-                                }
+                        // Action Button
+                        Button(action: saveIsotope) {
+                            Text(editingId == nil ? "Add to Library" : "Update Isotope")
+                                .fontWeight(.bold)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(isValid ? Theme.accent : Color.gray.opacity(0.3))
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
+                        }
+                        .disabled(!isValid)
+                        .buttonStyle(.borderless) // Essential for buttons inside Lists
+                    }
+                    .padding(.vertical, 8)
+                } header: {
+                    Text("Editor")
+                }
+                
+                // MARK: - Section 2: Library
+                Section {
+                    ForEach(store.isotopes) { iso in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(iso.symbol)
+                                    .font(.system(.body, design: .rounded))
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.primary)
+                                Text(iso.name)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
+                            
+                            Spacer()
+                            
+                            Text(iso.halfLifeString)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .padding(.vertical, 4)
+                                .padding(.horizontal, 8)
+                                .background(Color.secondary.opacity(0.1))
+                                .cornerRadius(6)
+                        }
+                        .padding(.vertical, 4)
+                        // NATIVE SWIPE ACTIONS
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            // Delete Button
+                            Button(role: .destructive) {
+                                deleteIsotope(iso)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                            .tint(.red) // Explicitly set to red
+                            
+                            // Edit Button
+                            Button {
+                                startEditing(iso)
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            .tint(Theme.accent)
                         }
                     }
-                    .padding(.top)
-                    .padding(.bottom, 100)
+                } header: {
+                    Text("Library")
+                } footer: {
+                    Text("Swipe left on a row to edit or delete it.")
                 }
             }
-            .onTapGesture {
-                isFocused = false
-            }
+            .listStyle(.insetGrouped) // This gives the native "Card" look automatically
             .navigationTitle("Manager")
+            .scrollDismissesKeyboard(.interactively) // Native keyboard dismissal
         }
     }
+    
+    // MARK: - Logic
     
     var isValid: Bool {
         return !name.isEmpty && !symbol.isEmpty && halfLifeValue != nil
     }
     
     func startEditing(_ isotope: Isotope) {
-        name = isotope.name
-        symbol = isotope.symbol
-        editingId = isotope.id
-        
-        // Convert seconds back to selected unit for display
-        let seconds = isotope.halfLifeSeconds
-        if seconds.truncatingRemainder(dividingBy: 86400) == 0 {
-            timeUnit = .days
-            halfLifeValue = seconds / 86400
-        } else if seconds.truncatingRemainder(dividingBy: 3600) == 0 {
-            timeUnit = .hours
-            halfLifeValue = seconds / 3600
-        } else {
-            timeUnit = .minutes
-            halfLifeValue = seconds / 60
+        withAnimation {
+            name = isotope.name
+            symbol = isotope.symbol
+            editingId = isotope.id
+            
+            // Convert seconds back to selected unit for display
+            let seconds = isotope.halfLifeSeconds
+            if seconds.truncatingRemainder(dividingBy: 86400) == 0 {
+                timeUnit = .days
+                halfLifeValue = seconds / 86400
+            } else if seconds.truncatingRemainder(dividingBy: 3600) == 0 {
+                timeUnit = .hours
+                halfLifeValue = seconds / 3600
+            } else {
+                timeUnit = .minutes
+                halfLifeValue = seconds / 60
+            }
+            
+            // Focus the first field to invite editing
+            isFocused = true
         }
-        
-        // Scroll to top or give focus (Optional, but nice UX)
-        isFocused = true
     }
     
     func deleteIsotope(_ isotope: Isotope) {
@@ -217,6 +215,8 @@ struct CustomIsotopeView: View {
             store.add(isotope: newIso)
         }
         
-        resetForm()
+        withAnimation {
+            resetForm()
+        }
     }
 }
