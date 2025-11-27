@@ -59,7 +59,6 @@ struct InfoView: View {
                                 VStack(alignment: .leading) {
                                     Text("Ludovico Pestarino")
                                         .font(.headline)
-                                    // UPDATED: Now uses the dynamic variable
                                     Text(appVersion)
                                         .font(.caption)
                                         .foregroundColor(.secondary)
@@ -76,6 +75,40 @@ struct InfoView: View {
                             .foregroundColor(.secondary)
                         }
                         
+                        // NEW: Connect / Links Card
+                        ModernCard {
+                            Text("Connect")
+                                .font(.headline)
+                                .padding(.bottom, 4)
+                            
+                            VStack(spacing: 0) {
+                                // Contact Button (Mailto)
+                                LinkRow(
+                                    icon: "envelope.fill",
+                                    title: "Email",
+                                    url: URL(string: "mailto:ludovico@pestarino.io")!
+                                )
+                                
+                                Divider().padding(.leading, 32)
+                                
+                                // Privacy Policy
+                                LinkRow(
+                                    icon: "hand.raised.fill",
+                                    title: "Privacy Policy",
+                                    url: URL(string: "https://dev.pestarino.io/privacy")!
+                                )
+                                
+                                Divider().padding(.leading, 32)
+                                
+                                // GitHub
+                                LinkRow(
+                                    icon: "chevron.left.forwardslash.chevron.right",
+                                    title: "GitHub Repository",
+                                    url: URL(string: "https://github.com/arkeane/DecayMate")!
+                                )
+                            }
+                        }
+                        
                         Text("© 2025 Ludovico Pestarino")
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -87,4 +120,28 @@ struct InfoView: View {
             .navigationTitle("About")
         }
     }
+    
+    // Helper View for the links
+    func LinkRow(icon: String, title: String, url: URL) -> some View {
+        Link(destination: url) {
+            HStack {
+                Image(systemName: icon)
+                    .frame(width: 24)
+                    .foregroundColor(Theme.accent)
+                Text(title)
+                    .foregroundColor(.primary)
+                Spacer()
+                Image(systemName: "arrow.up.right")
+                    .font(.caption2)
+                    .foregroundColor(.tertiaryLabel)
+            }
+            .padding(.vertical, 12)
+            .contentShape(Rectangle()) // Makes the whole row tappable
+        }
+    }
+}
+
+// Helper extension for color support in LinkRow
+extension Color {
+    static let tertiaryLabel = Color(uiColor: .tertiaryLabel)
 }
