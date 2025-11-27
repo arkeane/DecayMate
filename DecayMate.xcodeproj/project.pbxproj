@@ -6,7 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		D300566E2ED919EB00079DF1 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = D300566C2ED919E700079DF1 /* LICENSE */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		D300566C2ED919E700079DF1 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		D32B78322ED62CEB00DE90BE /* DecayMate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DecayMate.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -34,6 +39,7 @@
 			children = (
 				D32B78342ED62CEB00DE90BE /* DecayMate */,
 				D32B78332ED62CEB00DE90BE /* Products */,
+				D300566C2ED919E700079DF1 /* LICENSE */,
 			);
 			sourceTree = "<group>";
 		};
@@ -109,6 +115,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D300566E2ED919EB00079DF1 /* LICENSE in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
