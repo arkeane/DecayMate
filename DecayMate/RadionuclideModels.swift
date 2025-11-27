@@ -11,7 +11,7 @@ import SwiftUI
 
 // MARK: - Enums & Data Types
 
-enum ActivityUnit: String, CaseIterable, Identifiable {
+enum ActivityUnit: String, CaseIterable, Codable, Identifiable {
     case mCi
     case MBq
     
@@ -43,7 +43,6 @@ struct Isotope: Identifiable, Codable, Hashable {
         }
     }
     
-    // Default Medical Isotopes
     static let defaults: [Isotope] = [
         Isotope(name: "Technetium-99m", symbol: "Tc-99m", halfLifeSeconds: 6.0067 * 3600),
         Isotope(name: "Fluorine-18", symbol: "F-18", halfLifeSeconds: 109.77 * 60),
@@ -55,15 +54,23 @@ struct Isotope: Identifiable, Codable, Hashable {
     ]
 }
 
-// MARK: - Data Store
+// MARK: - Order Model
+struct Order: Identifiable, Codable {
+    var id = UUID()
+    var referenceName: String
+    var isotope: Isotope
+    var calibrationActivity: Double
+    var unit: ActivityUnit
+    var calibrationDate: Date
+}
+
+// MARK: - Stores
+
 class IsotopeStore: ObservableObject {
     @Published var isotopes: [Isotope] = []
-    
     private let saveKey = "SavedIsotopes"
     
-    init() {
-        load()
-    }
+    init() { load() }
     
     func add(isotope: Isotope) {
         isotopes.append(isotope)
@@ -87,8 +94,6 @@ class IsotopeStore: ObservableObject {
         save()
     }
     
-    // MARK: - Persistence Logic
-    
     private func save() {
         if let encoded = try? JSONEncoder().encode(isotopes) {
             UserDefaults.standard.set(encoded, forKey: saveKey)
@@ -100,8 +105,50 @@ class IsotopeStore: ObservableObject {
            let decoded = try? JSONDecoder().decode([Isotope].self, from: data) {
             self.isotopes = decoded
         } else {
-            // First run: Load defaults
             self.isotopes = Isotope.defaults
+        }
+    }
+}
+
+class OrderStore: ObservableObject {
+    @Published var orders: [Order] = []
+    private let saveKey = "SavedOrders"
+    
+    init() { load() }
+    
+    func add(_ order: Order) {
+        orders.append(order)
+        save()
+    }
+    
+    // Added update method to persist unit changes
+    func update(_ order: Order) {
+        if let index = orders.firstIndex(where: { $0.id == order.id }) {
+            orders[index] = order
+            save()
+        }
+    }
+    
+    func delete(at offsets: IndexSet) {
+        orders.remove(atOffsets: offsets)
+        save()
+    }
+    
+    func delete(_ order: Order) {
+        orders.removeAll { $0.id == order.id }
+        save()
+    }
+    
+    private func save() {
+        if let encoded = try? JSONEncoder().encode(orders) {
+            UserDefaults.standard.set(encoded, forKey: saveKey)
+        }
+    }
+    
+    private func load() {
+        if let data = UserDefaults.standard.data(forKey: saveKey),
+           let decoded = try? JSONDecoder().decode([Order].self, from: data) {
+            self.orders = decoded
         }
     }
 }
@@ -109,7 +156,6 @@ class IsotopeStore: ObservableObject {
 // MARK: - Physics Engine
 
 class DecayEngine {
-    
     static let shared = DecayEngine()
     
     func convert(_ value: Double, from source: ActivityUnit, to target: ActivityUnit) -> Double {
