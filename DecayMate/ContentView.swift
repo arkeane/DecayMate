@@ -44,7 +44,7 @@ struct ContentView: View {
             // 2: Target Dose
             TargetDoseView(store: isotopeStore)
                 .tabItem {
-                    Label("Target Dose", systemImage: "cross.case.fill")
+                    Label("Target Activity", systemImage: "cross.case.fill")
                 }
                 .tag(2)
             
