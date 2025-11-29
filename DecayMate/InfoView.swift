@@ -33,18 +33,12 @@ struct InfoView: View {
                                     .padding(.trailing, 4)
                                 
                                 VStack(alignment: .leading, spacing: 8) {
-                                    Text("Medical Disclaimer")
+                                    Text("Disclaimer")
                                         .font(.headline)
                                     
-                                    Text("This application is intended for educational and reference purposes only. It is not a certified medical device.")
+                                    Text("This application is intended for educational and reference purposes only.")
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
-                                    
-                                    Text("Do not use this application for clinical decision-making or patient dose calculations without verifying results with certified equipment and protocols.")
-                                        .font(.caption)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(Theme.danger)
-                                        .padding(.top, 4)
                                 }
                             }
                         }

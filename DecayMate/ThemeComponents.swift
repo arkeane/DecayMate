@@ -62,7 +62,7 @@ struct IsotopeSelectorHeader: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            Text("Select Radionuclide")
+            Text("Select Isotope")
                 .font(.caption)
                 .textCase(.uppercase)
                 .foregroundColor(.secondary)

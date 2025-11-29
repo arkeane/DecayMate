@@ -52,13 +52,13 @@ struct TargetDoseView: View {
                                 HStack {
                                     Image(systemName: "target")
                                         .foregroundColor(.green)
-                                    Text("Target Dose")
+                                    Text("Target Activity")
                                         .font(.headline)
                                     Spacer()
                                     UnitSelector(selectedUnit: $unit)
                                 }
                                 
-                                TextField("Required Dose", value: $targetDose, format: .number)
+                                TextField("Required Activity", value: $targetDose, format: .number)
                                     .keyboardType(.decimalPad)
                                     .font(.system(size: 32, weight: .bold))
                                     .focused($isInputFocused)
@@ -80,7 +80,7 @@ struct TargetDoseView: View {
                                 DatePicker("Preparation Time", selection: $prepTime)
                                     .font(.system(.body, design: .rounded))
                                 
-                                DatePicker("Administration Time", selection: $adminTime)
+                                DatePicker("Target Time", selection: $adminTime)
                                     .font(.system(.body, design: .rounded))
                             }
                             
@@ -92,7 +92,7 @@ struct TargetDoseView: View {
                                     unit: unit.label,
                                     date: nil
                                 )
-                                Text("This amount will decay to exactly \(String(format: "%.1f", targetDose ?? 0)) \(unit.label) by administration time.")
+                                Text("This amount will decay to exactly \(String(format: "%.1f", targetDose ?? 0)) \(unit.label) by target time.")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                     .multilineTextAlignment(.center)

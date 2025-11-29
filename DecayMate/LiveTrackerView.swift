@@ -92,7 +92,7 @@ struct EmptyStateView: View {
             Text("No Active Trackers")
                 .font(.headline)
                 .foregroundColor(.secondary)
-            Text("Add an order to monitor its decay in real-time.")
+            Text("Add an activity to monitor its decay in real-time.")
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -118,7 +118,7 @@ struct LiveOrderCard: View {
             // Header
             HStack(alignment: .top) {
                 VStack(alignment: .leading) {
-                    Text(order.referenceName.isEmpty ? "Order #\(order.id.uuidString.prefix(4))" : order.referenceName)
+                    Text(order.referenceName.isEmpty ? "Reference #\(order.id.uuidString.prefix(4))" : order.referenceName)
                         .font(.headline)
                         .foregroundColor(.primary)
                     Text(order.isotope.symbol)
@@ -209,8 +209,8 @@ struct AddOrderSheet: View {
     var body: some View {
         NavigationView {
             Form {
-                Section("Order Details") {
-                    TextField("Order Reference / ID", text: $referenceName)
+                Section("Details") {
+                    TextField("Reference", text: $referenceName)
                         .focused($isFocused)
                     
                     Picker("Isotope", selection: $selectedIsotope) {
@@ -310,10 +310,10 @@ struct OrderDetailView: View {
                     // Header Card
                     ModernCard {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Order Reference")
+                            Text("Reference")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                            Text(order.referenceName.isEmpty ? "Unnamed Order" : order.referenceName)
+                            Text(order.referenceName.isEmpty ? "Unnamed" : order.referenceName)
                                 .font(.title2)
                                 .fontWeight(.bold)
                             
