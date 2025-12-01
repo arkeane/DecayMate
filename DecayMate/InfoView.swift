@@ -36,9 +36,15 @@ struct InfoView: View {
                                     Text("Disclaimer")
                                         .font(.headline)
                                     
-                                    Text("This application is intended for educational and reference purposes only.")
+                                    Text("This application is a physics utility designed to calculate the radioactive decay of isotopes based on standard half-life data.")
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
+                                    
+                                    Text("It is for educational and reference purposes only.")
+                                        .font(.caption)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.secondary) // Less aggressive color than danger/red
+                                        .padding(.top, 4)
                                 }
                             }
                         }

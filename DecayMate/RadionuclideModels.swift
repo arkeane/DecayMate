@@ -55,7 +55,7 @@ struct Isotope: Identifiable, Codable, Hashable {
 }
 
 // MARK: - Order Model
-struct Order: Identifiable, Codable {
+struct Reference: Identifiable, Codable {
     var id = UUID()
     var referenceName: String
     var isotope: Isotope
@@ -111,44 +111,44 @@ class IsotopeStore: ObservableObject {
 }
 
 class OrderStore: ObservableObject {
-    @Published var orders: [Order] = []
-    private let saveKey = "SavedOrders"
+    @Published var references: [Reference] = []
+    private let saveKey = "SavedReferences"
     
     init() { load() }
     
-    func add(_ order: Order) {
-        orders.append(order)
+    func add(_ order: Reference) {
+        references.append(order)
         save()
     }
     
     // Added update method to persist unit changes
-    func update(_ order: Order) {
-        if let index = orders.firstIndex(where: { $0.id == order.id }) {
-            orders[index] = order
+    func update(_ order: Reference) {
+        if let index = references.firstIndex(where: { $0.id == order.id }) {
+            references[index] = order
             save()
         }
     }
     
     func delete(at offsets: IndexSet) {
-        orders.remove(atOffsets: offsets)
+        references.remove(atOffsets: offsets)
         save()
     }
     
-    func delete(_ order: Order) {
-        orders.removeAll { $0.id == order.id }
+    func delete(_ order: Reference) {
+        references.removeAll { $0.id == order.id }
         save()
     }
     
     private func save() {
-        if let encoded = try? JSONEncoder().encode(orders) {
+        if let encoded = try? JSONEncoder().encode(references) {
             UserDefaults.standard.set(encoded, forKey: saveKey)
         }
     }
     
     private func load() {
         if let data = UserDefaults.standard.data(forKey: saveKey),
-           let decoded = try? JSONDecoder().decode([Order].self, from: data) {
-            self.orders = decoded
+           let decoded = try? JSONDecoder().decode([Reference].self, from: data) {
+            self.references = decoded
         }
     }
 }

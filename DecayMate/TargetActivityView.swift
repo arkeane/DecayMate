@@ -7,14 +7,14 @@
 
 import SwiftUI
 
-struct TargetDoseView: View {
+struct TargetActivityView: View {
     @ObservedObject var store: IsotopeStore
     
     @State private var selectedIsotope: Isotope
-    @State private var targetDose: Double?
+    @State private var targetActivity: Double?
     @State private var unit: ActivityUnit = .mCi
-    @State private var prepTime = Date()
-    @State private var adminTime = Date().addingTimeInterval(3600 * 2) // Default +2 hr
+    @State private var startTime = Date()
+    @State private var targetTime = Date().addingTimeInterval(3600 * 2) // Default +2 hr
     
     @FocusState private var isInputFocused: Bool
     
@@ -24,10 +24,8 @@ struct TargetDoseView: View {
     }
     
     var requiredActivity: Double {
-        let dose = targetDose ?? 0.0
-        // We need X amount at Admin Time. How much at Prep Time?
-        // Duration is Prep -> Admin
-        let duration = adminTime.timeIntervalSince(prepTime)
+        let dose = targetActivity ?? 0.0
+        let duration = targetTime.timeIntervalSince(startTime)
         
         return DecayEngine.shared.calculateRequiredSource(
             targetActivity: dose,
@@ -58,7 +56,7 @@ struct TargetDoseView: View {
                                     UnitSelector(selectedUnit: $unit)
                                 }
                                 
-                                TextField("Required Activity", value: $targetDose, format: .number)
+                                TextField("Required Activity", value: $targetActivity, format: .number)
                                     .keyboardType(.decimalPad)
                                     .font(.system(size: 32, weight: .bold))
                                     .focused($isInputFocused)
@@ -77,22 +75,22 @@ struct TargetDoseView: View {
                                 }
                                 Divider()
                                 
-                                DatePicker("Preparation Time", selection: $prepTime)
+                                DatePicker("Start Time", selection: $startTime)
                                     .font(.system(.body, design: .rounded))
                                 
-                                DatePicker("Target Time", selection: $adminTime)
+                                DatePicker("Target Time", selection: $targetTime)
                                     .font(.system(.body, design: .rounded))
                             }
                             
-                            // Card 3: The Order
+                            // Card 3: Reference
                             ModernCard {
                                 ResultDisplay(
-                                    title: "Prepare at \(prepTime.formatted(date: .omitted, time: .shortened))",
+                                    title: "Starting at \(startTime.formatted(date: .omitted, time: .shortened)) with:",
                                     value: requiredActivity,
                                     unit: unit.label,
                                     date: nil
                                 )
-                                Text("This amount will decay to exactly \(String(format: "%.1f", targetDose ?? 0)) \(unit.label) by target time.")
+                                Text("This amount will decay to exactly \(String(format: "%.1f", targetActivity ?? 0)) \(unit.label) by target time.")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                     .multilineTextAlignment(.center)
@@ -109,9 +107,9 @@ struct TargetDoseView: View {
             }
             // Smart Conversion Logic (Updated for iOS 17+)
             .onChange(of: unit) { oldValue, newValue in
-                if let currentVal = targetDose {
+                if let currentVal = targetActivity {
                     let converted = DecayEngine.shared.convert(currentVal, from: oldValue, to: newValue)
-                    targetDose = (converted * 10000).rounded() / 10000
+                    targetActivity = (converted * 10000).rounded() / 10000
                 }
             }
             .navigationBarTitleDisplayMode(.inline)

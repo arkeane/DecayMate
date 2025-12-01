@@ -10,7 +10,7 @@ import Combine
 
 struct LiveTrackerView: View {
     @ObservedObject var isotopeStore: IsotopeStore
-    @StateObject private var orderStore = OrderStore()
+    @StateObject private var referencesStore = OrderStore()
     
     @State private var showingAddSheet = false
     @State private var currentTime = Date()
@@ -27,15 +27,15 @@ struct LiveTrackerView: View {
             ZStack {
                 Theme.bg.ignoresSafeArea()
                 
-                if orderStore.orders.isEmpty {
+                if referencesStore.references.isEmpty {
                     EmptyStateView()
                 } else {
                     List {
-                        ForEach(orderStore.orders) { order in
+                        ForEach(referencesStore.references) { order in
                             ZStack {
                                 // Navigation Link hidden behind the card content
                                 // We pass orderStore so the DetailView can update the unit
-                                NavigationLink(destination: OrderDetailView(order: order, currentTime: $currentTime, orderStore: orderStore)) {
+                                NavigationLink(destination: OrderDetailView(order: order, currentTime: $currentTime, orderStore: referencesStore)) {
                                     EmptyView()
                                 }
                                 .opacity(0)
@@ -48,7 +48,7 @@ struct LiveTrackerView: View {
                             .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 Button(role: .destructive) {
-                                    orderStore.delete(order)
+                                    referencesStore.delete(order)
                                 } label: {
                                     Label("Delete", systemImage: "trash")
                                 }
@@ -72,7 +72,7 @@ struct LiveTrackerView: View {
                 }
             }
             .sheet(isPresented: $showingAddSheet) {
-                AddOrderSheet(isotopeStore: isotopeStore, orderStore: orderStore)
+                AddOrderSheet(isotopeStore: isotopeStore, orderStore: referencesStore)
             }
             .onReceive(timer) { input in
                 currentTime = input
@@ -101,7 +101,7 @@ struct EmptyStateView: View {
 }
 
 struct LiveOrderCard: View {
-    let order: Order
+    let order: Reference
     let now: Date
     
     var currentActivity: Double {
@@ -249,7 +249,7 @@ struct AddOrderSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Start Tracking") {
                         if let act = activity {
-                            let newOrder = Order(
+                            let newOrder = Reference(
                                 referenceName: referenceName,
                                 isotope: selectedIsotope,
                                 calibrationActivity: act,
@@ -270,13 +270,13 @@ struct AddOrderSheet: View {
 // MARK: - Detail View
 
 struct OrderDetailView: View {
-    let order: Order
+    let order: Reference
     @Binding var currentTime: Date
     @ObservedObject var orderStore: OrderStore
     
     @State private var selectedUnit: ActivityUnit
     
-    init(order: Order, currentTime: Binding<Date>, orderStore: OrderStore) {
+    init(order: Reference, currentTime: Binding<Date>, orderStore: OrderStore) {
         self.order = order
         self._currentTime = currentTime
         self.orderStore = orderStore

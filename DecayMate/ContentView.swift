@@ -41,10 +41,10 @@ struct ContentView: View {
                 }
                 .tag(1)
             
-            // 2: Target Dose
-            TargetDoseView(store: isotopeStore)
+            // 2: Target Activity
+            TargetActivityView(store: isotopeStore)
                 .tabItem {
-                    Label("Target Activity", systemImage: "cross.case.fill")
+                    Label("Target Activity", systemImage: "arrow.left.arrow.right")
                 }
                 .tag(2)
             
