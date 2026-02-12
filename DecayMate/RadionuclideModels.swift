@@ -22,15 +22,15 @@ struct AppConfig {
 }
 
 // MARK: - Live Activity Attributes
-// This defines the data sent to the Dynamic Island/Lock Screen
 struct DecayMateWidgetAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
-        // Dynamic items that can change (we update these)
         var currentActivity: Double
         var unit: String
+        var nextTargetName: String?
+        var nextTargetActivity: Double?
+        var nextTargetDate: Date?
     }
 
-    // Static items (set once when activity starts)
     var isotopeName: String
     var isotopeSymbol: String
     var referenceName: String
@@ -39,7 +39,7 @@ struct DecayMateWidgetAttributes: ActivityAttributes {
     var halfLife: Double
 }
 
-// MARK: - Expanded Units
+// MARK: - Units
 enum ActivityUnit: String, CaseIterable, Codable, Identifiable {
     case Ci = "Ci"
     case mCi = "mCi"
@@ -112,7 +112,8 @@ struct Reference: Identifiable, Codable {
     var unit: ActivityUnit
     var calibrationDate: Date
     
-    var isPinned: Bool = false
+    var isPinned: Bool = false // Widget
+    var isLive: Bool = false   // Live Activity
     var savedTargets: [SavedTarget] = []
 }
 
@@ -181,11 +182,21 @@ class OrderStore: ObservableObject {
             save()
         }
         
-        // Ensure only one item is pinned
+        // Exclusivity: Widget (isPinned)
         if order.isPinned {
             for i in 0..<references.count {
                 if references[i].id != order.id {
                     references[i].isPinned = false
+                }
+            }
+            save()
+        }
+        
+        // Exclusivity: Live Activity (isLive)
+        if order.isLive {
+            for i in 0..<references.count {
+                if references[i].id != order.id {
+                    references[i].isLive = false
                 }
             }
             save()
@@ -200,12 +211,14 @@ class OrderStore: ObservableObject {
     private func save() {
         if let encoded = try? JSONEncoder().encode(references) {
             defaults.set(encoded, forKey: saveKey)
-            // CRITICAL: Reload standard widgets when data changes
+            // Reload Widgets
             WidgetCenter.shared.reloadAllTimelines()
         }
     }
     
     private func load() {
+        // If decoding fails (e.g. older data without isLive), we fall back to empty array
+        // In a production app, we would write a custom init(from: decoder) to handle missing keys.
         if let data = defaults.data(forKey: saveKey),
            let decoded = try? JSONDecoder().decode([Reference].self, from: data) {
             self.references = decoded

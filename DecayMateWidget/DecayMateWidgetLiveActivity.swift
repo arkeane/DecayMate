@@ -14,50 +14,97 @@ struct DecayMateWidgetLiveActivity: Widget {
         // We use the shared attributes defined in RadionuclideModels.swift
         ActivityConfiguration(for: DecayMateWidgetAttributes.self) { context in
             // MARK: - Lock Screen / Banner UI
-            HStack {
-                VStack(alignment: .leading) {
-                    Text(context.attributes.isotopeSymbol)
-                        .font(.headline)
-                        .foregroundColor(.blue)
-                    Text(context.attributes.referenceName.isEmpty ? "Source" : context.attributes.referenceName)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+            VStack(spacing: 0) {
+                // Top Row: Info
+                HStack {
+                    VStack(alignment: .leading) {
+                        HStack {
+                            Text(context.attributes.isotopeSymbol)
+                                .font(.headline)
+                                .foregroundColor(.blue)
+                            Text("•")
+                                .foregroundColor(.secondary)
+                            Text(context.attributes.referenceName.isEmpty ? "Source" : context.attributes.referenceName)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .trailing) {
+                        Text(String(format: "%.1f", context.state.currentActivity))
+                            .font(.system(.title, design: .rounded))
+                            .fontWeight(.bold)
+                            .contentTransition(.numericText(value: context.state.currentActivity))
+                        Text(context.state.unit)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
+                .padding(.bottom, 10)
                 
-                Spacer()
-                
-                VStack(alignment: .trailing) {
-                    Text(String(format: "%.1f", context.state.currentActivity))
-                        .font(.system(.title, design: .rounded))
-                        .fontWeight(.bold)
-                    Text(context.state.unit)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                // Bottom Row: Target Timer (Uber Style)
+                if let targetDate = context.state.nextTargetDate,
+                   let targetName = context.state.nextTargetName {
+                    Divider()
+                        .padding(.bottom, 10)
+                    
+                    HStack {
+                        Image(systemName: "timer")
+                            .foregroundColor(.orange)
+                        Text("Reaching \(targetName)")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                        Spacer()
+                        // THIS IS THE KEY: A native counting down timer
+                        Text(targetDate, style: .timer)
+                            .font(.system(.body, design: .monospaced))
+                            .foregroundColor(.orange)
+                            .multilineTextAlignment(.trailing)
+                    }
                 }
             }
             .padding()
-            .activityBackgroundTint(Color(.secondarySystemBackground))
+            .activityBackgroundTint(Color(UIColor.systemBackground))
             .activitySystemActionForegroundColor(Color.blue)
 
         } dynamicIsland: { context in
             DynamicIsland {
-                // MARK: - Dynamic Island Expanded
+                // MARK: - Expanded Island
                 DynamicIslandExpandedRegion(.leading) {
                     Text(context.attributes.isotopeSymbol)
                         .font(.headline)
                         .foregroundColor(.blue)
                         .padding(.leading, 8)
                 }
+                
                 DynamicIslandExpandedRegion(.trailing) {
-                    Text("\(String(format: "%.1f", context.state.currentActivity)) \(context.state.unit)")
-                        .monospacedDigit()
-                        .font(.headline)
-                        .padding(.trailing, 8)
+                    VStack(alignment: .trailing) {
+                        Text("\(String(format: "%.1f", context.state.currentActivity)) \(context.state.unit)")
+                            .monospacedDigit()
+                            .font(.headline)
+                            .padding(.trailing, 8)
+                    }
                 }
+                
                 DynamicIslandExpandedRegion(.bottom) {
-                    Text(context.attributes.referenceName)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    if let targetDate = context.state.nextTargetDate {
+                        HStack {
+                            Image(systemName: "timer")
+                                .foregroundColor(.orange)
+                                .font(.caption2)
+                            Text(targetDate, style: .timer)
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                                .monospacedDigit()
+                        }
+                        .padding(.top, 4)
+                    } else {
+                        Text(context.attributes.referenceName)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
             } compactLeading: {
                 // MARK: - Compact Island
@@ -65,10 +112,17 @@ struct DecayMateWidgetLiveActivity: Widget {
                     .fontWeight(.bold)
                     .foregroundColor(.blue)
             } compactTrailing: {
-                Text(String(format: "%.1f", context.state.currentActivity))
-                    .monospacedDigit()
+                if let targetDate = context.state.nextTargetDate {
+                    Text(targetDate, style: .timer)
+                        .monospacedDigit()
+                        .foregroundColor(.orange)
+                        .frame(maxWidth: 40)
+                } else {
+                    Text(String(format: "%.1f", context.state.currentActivity))
+                        .monospacedDigit()
+                }
             } minimal: {
-                // Ensure minimal view is distinct
+                // Minimal view
                 Image(systemName: "atom.fill")
                     .foregroundColor(.blue)
             }
