@@ -8,25 +8,64 @@
 import Foundation
 import Combine
 import SwiftUI
+import WidgetKit
+import ActivityKit
 
-// MARK: - Enums & Data Types
+// MARK: - Constants & Config
+struct PhysicsConstants {
+    static let ln2 = 0.69314718056
+}
 
+struct AppConfig {
+    // IMPORTANT: Enable "App Groups" in Xcode Signing & Capabilities
+    static let appGroupSuiteName = "group.pestarino.io.DecayMate"
+}
+
+// MARK: - Live Activity Attributes
+// This defines the data sent to the Dynamic Island/Lock Screen
+struct DecayMateWidgetAttributes: ActivityAttributes {
+    public struct ContentState: Codable, Hashable {
+        // Dynamic items that can change (we update these)
+        var currentActivity: Double
+        var unit: String
+    }
+
+    // Static items (set once when activity starts)
+    var isotopeName: String
+    var isotopeSymbol: String
+    var referenceName: String
+    var calibrationDate: Date
+    var calibrationActivity: Double
+    var halfLife: Double
+}
+
+// MARK: - Expanded Units
 enum ActivityUnit: String, CaseIterable, Codable, Identifiable {
-    case mCi
-    case MBq
+    case Ci = "Ci"
+    case mCi = "mCi"
+    case uCi = "µCi"
+    case TBq = "TBq"
+    case GBq = "GBq"
+    case MBq = "MBq"
+    case kBq = "kBq"
     
     var id: String { self.rawValue }
+    var label: String { self.rawValue }
     
-    var label: String {
+    var toMBqFactor: Double {
         switch self {
-        case .mCi: return "mCi"
-        case .MBq: return "MBq"
+        case .Ci: return 37000.0
+        case .mCi: return 37.0
+        case .uCi: return 0.037
+        case .TBq: return 1000000.0
+        case .GBq: return 1000.0
+        case .MBq: return 1.0
+        case .kBq: return 0.001
         }
     }
 }
 
 // MARK: - Isotope Model
-
 struct Isotope: Identifiable, Codable, Hashable {
     var id = UUID()
     let name: String
@@ -44,17 +83,27 @@ struct Isotope: Identifiable, Codable, Hashable {
     }
     
     static let defaults: [Isotope] = [
-        Isotope(name: "Technetium-99m", symbol: "Tc-99m", halfLifeSeconds: 6.0067 * 3600),
-        Isotope(name: "Fluorine-18", symbol: "F-18", halfLifeSeconds: 109.77 * 60),
-        Isotope(name: "Iodine-131", symbol: "I-131", halfLifeSeconds: 8.02 * 86400),
-        Isotope(name: "Gallium-68", symbol: "Ga-68", halfLifeSeconds: 67.71 * 60),
-        Isotope(name: "Lutetium-177", symbol: "Lu-177", halfLifeSeconds: 6.647 * 86400),
-        Isotope(name: "Iodine-123", symbol: "I-123", halfLifeSeconds: 13.22 * 3600),
-        Isotope(name: "Thallium-201", symbol: "Tl-201", halfLifeSeconds: 72.91 * 3600)
+        Isotope(name: "Technetium-99m", symbol: "Tc-99m", halfLifeSeconds: 21624),
+        Isotope(name: "Fluorine-18", symbol: "F-18", halfLifeSeconds: 6586),
+        Isotope(name: "Iodine-131", symbol: "I-131", halfLifeSeconds: 692928),
+        Isotope(name: "Lutetium-177", symbol: "Lu-177", halfLifeSeconds: 574300),
+        Isotope(name: "Gallium-68", symbol: "Ga-68", halfLifeSeconds: 4063),
+        Isotope(name: "Iodine-123", symbol: "I-123", halfLifeSeconds: 47592),
+        Isotope(name: "Thallium-201", symbol: "Tl-201", halfLifeSeconds: 262476),
+        Isotope(name: "Cobalt-57", symbol: "Co-57", halfLifeSeconds: 23483520),
+        Isotope(name: "Cesium-137", symbol: "Cs-137", halfLifeSeconds: 946700000)
     ]
 }
 
-// MARK: - Order Model
+// MARK: - Saved Targets
+struct SavedTarget: Identifiable, Codable {
+    var id = UUID()
+    var name: String
+    var targetActivity: Double
+    var unit: ActivityUnit
+}
+
+// MARK: - Reference/Order Model
 struct Reference: Identifiable, Codable {
     var id = UUID()
     var referenceName: String
@@ -62,15 +111,21 @@ struct Reference: Identifiable, Codable {
     var calibrationActivity: Double
     var unit: ActivityUnit
     var calibrationDate: Date
+    
+    var isPinned: Bool = false
+    var savedTargets: [SavedTarget] = []
 }
 
-// MARK: - Stores
-
+// MARK: - Data Stores
 class IsotopeStore: ObservableObject {
     @Published var isotopes: [Isotope] = []
     private let saveKey = "SavedIsotopes"
+    private let defaults: UserDefaults
     
-    init() { load() }
+    init() {
+        self.defaults = UserDefaults(suiteName: AppConfig.appGroupSuiteName) ?? .standard
+        load()
+    }
     
     func add(isotope: Isotope) {
         isotopes.append(isotope)
@@ -89,19 +144,14 @@ class IsotopeStore: ObservableObject {
         save()
     }
     
-    func delete(at offsets: IndexSet) {
-        isotopes.remove(atOffsets: offsets)
-        save()
-    }
-    
     private func save() {
         if let encoded = try? JSONEncoder().encode(isotopes) {
-            UserDefaults.standard.set(encoded, forKey: saveKey)
+            defaults.set(encoded, forKey: saveKey)
         }
     }
     
     private func load() {
-        if let data = UserDefaults.standard.data(forKey: saveKey),
+        if let data = defaults.data(forKey: saveKey),
            let decoded = try? JSONDecoder().decode([Isotope].self, from: data) {
             self.isotopes = decoded
         } else {
@@ -113,25 +163,33 @@ class IsotopeStore: ObservableObject {
 class OrderStore: ObservableObject {
     @Published var references: [Reference] = []
     private let saveKey = "SavedReferences"
+    private let defaults: UserDefaults
     
-    init() { load() }
+    init() {
+        self.defaults = UserDefaults(suiteName: AppConfig.appGroupSuiteName) ?? .standard
+        load()
+    }
     
     func add(_ order: Reference) {
         references.append(order)
         save()
     }
     
-    // Added update method to persist unit changes
     func update(_ order: Reference) {
         if let index = references.firstIndex(where: { $0.id == order.id }) {
             references[index] = order
             save()
         }
-    }
-    
-    func delete(at offsets: IndexSet) {
-        references.remove(atOffsets: offsets)
-        save()
+        
+        // Ensure only one item is pinned
+        if order.isPinned {
+            for i in 0..<references.count {
+                if references[i].id != order.id {
+                    references[i].isPinned = false
+                }
+            }
+            save()
+        }
     }
     
     func delete(_ order: Reference) {
@@ -141,12 +199,14 @@ class OrderStore: ObservableObject {
     
     private func save() {
         if let encoded = try? JSONEncoder().encode(references) {
-            UserDefaults.standard.set(encoded, forKey: saveKey)
+            defaults.set(encoded, forKey: saveKey)
+            // CRITICAL: Reload standard widgets when data changes
+            WidgetCenter.shared.reloadAllTimelines()
         }
     }
     
     private func load() {
-        if let data = UserDefaults.standard.data(forKey: saveKey),
+        if let data = defaults.data(forKey: saveKey),
            let decoded = try? JSONDecoder().decode([Reference].self, from: data) {
             self.references = decoded
         }
@@ -154,25 +214,26 @@ class OrderStore: ObservableObject {
 }
 
 // MARK: - Physics Engine
-
-class DecayEngine {
-    static let shared = DecayEngine()
-    
-    func convert(_ value: Double, from source: ActivityUnit, to target: ActivityUnit) -> Double {
+struct DecayMath {
+    static func convert(_ value: Double, from source: ActivityUnit, to target: ActivityUnit) -> Double {
         if source == target { return value }
-        switch source {
-        case .mCi: return value * 37.0
-        case .MBq: return value / 37.0
-        }
+        let valueInMBq = value * source.toMBqFactor
+        return valueInMBq / target.toMBqFactor
     }
     
-    func calculateDecay(A0: Double, halfLife: Double, elapsedSeconds: Double) -> Double {
-        let decayConstant = 0.69314718056 / halfLife
-        return A0 * exp(-decayConstant * elapsedSeconds)
+    static func solveForActivity(A0: Double, halfLife: Double, elapsedSeconds: Double) -> Double {
+        let lambda = PhysicsConstants.ln2 / halfLife
+        return A0 * exp(-lambda * elapsedSeconds)
     }
     
-    func calculateRequiredSource(targetActivity: Double, halfLife: Double, durationSeconds: Double) -> Double {
-        let decayConstant = 0.69314718056 / halfLife
-        return targetActivity * exp(decayConstant * durationSeconds)
+    static func solveForInitial(targetActivity: Double, halfLife: Double, durationSeconds: Double) -> Double {
+        let lambda = PhysicsConstants.ln2 / halfLife
+        return targetActivity * exp(lambda * durationSeconds)
+    }
+    
+    static func solveForTime(currentActivity: Double, targetActivity: Double, halfLife: Double) -> Double {
+        guard currentActivity > 0, targetActivity > 0 else { return 0 }
+        let lambda = PhysicsConstants.ln2 / halfLife
+        return -log(targetActivity / currentActivity) / lambda
     }
 }

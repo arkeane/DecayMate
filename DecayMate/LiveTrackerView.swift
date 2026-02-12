@@ -2,11 +2,12 @@
 //  LiveTrackerView.swift
 //  DecayMate
 //
-//  Created by Ludovico Pestarino on 26/11/25.
+//  Created by Ludovico Pestarino on 25/11/25.
 //
 
 import SwiftUI
 import Combine
+import ActivityKit
 
 struct LiveTrackerView: View {
     @ObservedObject var isotopeStore: IsotopeStore
@@ -15,7 +16,6 @@ struct LiveTrackerView: View {
     @State private var showingAddSheet = false
     @State private var currentTime = Date()
     
-    // Global Timer: Updates 'currentTime' every second.
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     init(store: IsotopeStore) {
@@ -33,14 +33,11 @@ struct LiveTrackerView: View {
                     List {
                         ForEach(referencesStore.references) { order in
                             ZStack {
-                                // Navigation Link hidden behind the card content
-                                // We pass orderStore so the DetailView can update the unit
                                 NavigationLink(destination: OrderDetailView(order: order, currentTime: $currentTime, orderStore: referencesStore)) {
                                     EmptyView()
                                 }
                                 .opacity(0)
                                 
-                                // The Visual Card
                                 LiveOrderCard(order: order, now: currentTime)
                             }
                             .listRowBackground(Color.clear)
@@ -62,9 +59,7 @@ struct LiveTrackerView: View {
             .navigationTitle("Live Tracker")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showingAddSheet = true
-                    } label: {
+                    Button { showingAddSheet = true } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
                             .foregroundColor(Theme.accent)
@@ -74,14 +69,12 @@ struct LiveTrackerView: View {
             .sheet(isPresented: $showingAddSheet) {
                 AddOrderSheet(isotopeStore: isotopeStore, orderStore: referencesStore)
             }
-            .onReceive(timer) { input in
-                currentTime = input
-            }
+            .onReceive(timer) { input in currentTime = input }
         }
     }
 }
 
-// MARK: - Components
+// MARK: - Components (EmptyState, LiveOrderCard)
 
 struct EmptyStateView: View {
     var body: some View {
@@ -95,7 +88,6 @@ struct EmptyStateView: View {
             Text("Add an activity to monitor its decay in real-time.")
                 .font(.caption)
                 .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
         }
     }
 }
@@ -106,7 +98,7 @@ struct LiveOrderCard: View {
     
     var currentActivity: Double {
         let elapsed = now.timeIntervalSince(order.calibrationDate)
-        return DecayEngine.shared.calculateDecay(
+        return DecayMath.solveForActivity(
             A0: order.calibrationActivity,
             halfLife: order.isotope.halfLifeSeconds,
             elapsedSeconds: elapsed
@@ -115,12 +107,18 @@ struct LiveOrderCard: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Header
             HStack(alignment: .top) {
                 VStack(alignment: .leading) {
-                    Text(order.referenceName.isEmpty ? "Reference #\(order.id.uuidString.prefix(4))" : order.referenceName)
-                        .font(.headline)
-                        .foregroundColor(.primary)
+                    HStack {
+                        Text(order.referenceName.isEmpty ? "Reference" : order.referenceName)
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        if order.isPinned {
+                            Image(systemName: "pin.fill")
+                                .font(.caption2)
+                                .foregroundColor(.orange)
+                        }
+                    }
                     Text(order.isotope.symbol)
                         .font(.caption)
                         .fontWeight(.bold)
@@ -130,53 +128,24 @@ struct LiveOrderCard: View {
                         .foregroundColor(Theme.accent)
                         .cornerRadius(4)
                 }
-                
                 Spacer()
-                
-                // Live Blinker
                 Circle()
                     .fill(Color.green)
                     .frame(width: 8, height: 8)
                     .opacity(Int(now.timeIntervalSince1970) % 2 == 0 ? 1.0 : 0.4)
-                    .animation(.default, value: now)
             }
             
-            // Calibration Info (Compact One-Line)
-            HStack(spacing: 6) {
-                Image(systemName: "gauge.with.needle")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                
-                Text("Start: \(String(format: "%.1f", order.calibrationActivity)) \(order.unit.label) @ \(order.calibrationDate.formatted(date: .abbreviated, time: .shortened))")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                
-                Spacer()
-            }
-            .padding(.vertical, 2)
-            
-            Divider()
-            
-            // Numbers
             HStack(alignment: .lastTextBaseline) {
-                // ROUNDED TO 1 DIGIT
-                Text(String(format: "%.1f", currentActivity))
+                Text(String(format: "%.2f", currentActivity))
                     .font(.system(size: 34, weight: .bold, design: .rounded))
                     .foregroundColor(.primary)
                     .contentTransition(.numericText(value: currentActivity))
-                    .animation(.default, value: currentActivity)
                 
                 Text(order.unit.label)
                     .font(.headline)
                     .foregroundColor(.secondary)
                 
                 Spacer()
-                
-                Text("Left")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
             }
         }
         .padding()
@@ -186,13 +155,274 @@ struct LiveOrderCard: View {
     }
 }
 
-// MARK: - Add Order Sheet
+// MARK: - Detail View
+
+struct OrderDetailView: View {
+    let order: Reference
+    @Binding var currentTime: Date
+    @ObservedObject var orderStore: OrderStore
+    
+    @State private var selectedUnit: ActivityUnit
+    
+    @State private var isEditingName = false
+    @State private var newName = ""
+    @State private var isAddingTarget = false
+    @State private var newTargetName = ""
+    @State private var newTargetValue: Double?
+    
+    init(order: Reference, currentTime: Binding<Date>, orderStore: OrderStore) {
+        self.order = order
+        self._currentTime = currentTime
+        self.orderStore = orderStore
+        self._selectedUnit = State(initialValue: order.unit)
+    }
+    
+    var currentActivity: Double {
+        let elapsed = currentTime.timeIntervalSince(order.calibrationDate)
+        return DecayMath.solveForActivity(A0: order.calibrationActivity, halfLife: order.isotope.halfLifeSeconds, elapsedSeconds: elapsed)
+    }
+    
+    var body: some View {
+        ZStack {
+            Theme.bg.ignoresSafeArea()
+            ScrollView {
+                VStack(spacing: 16) {
+                    
+                    // HEADER CARD
+                    ModernCard {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Reference Name")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                HStack {
+                                    Text(order.referenceName.isEmpty ? "Unnamed Source" : order.referenceName)
+                                        .font(.title2)
+                                        .fontWeight(.bold)
+                                    Button {
+                                        newName = order.referenceName
+                                        isEditingName = true
+                                    } label: {
+                                        Image(systemName: "pencil.circle.fill").foregroundColor(.secondary)
+                                    }
+                                }
+                                Divider()
+                                HStack {
+                                    Label(order.isotope.name, systemImage: "atom")
+                                    Spacer()
+                                    // PIN BUTTON
+                                    Button(action: togglePin) {
+                                        HStack {
+                                            Text(order.isPinned ? "Unpin" : "Pin")
+                                            Image(systemName: order.isPinned ? "pin.slash.fill" : "pin")
+                                        }
+                                        .font(.caption)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(order.isPinned ? Color.orange.opacity(0.15) : Color.clear)
+                                        .foregroundColor(order.isPinned ? .orange : .secondary)
+                                        .cornerRadius(8)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // ACTIVITY CARD
+                    ModernCard {
+                        VStack(spacing: 8) {
+                            HStack {
+                                Text("CURRENT ACTIVITY")
+                                    .font(.caption)
+                                    .fontWeight(.black)
+                                    .foregroundColor(.secondary)
+                                    .tracking(1)
+                                Spacer()
+                                UnitSelector(selectedUnit: $selectedUnit)
+                            }
+                            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                Text(String(format: "%.2f", currentActivity))
+                                    .font(.system(size: 56, weight: .heavy, design: .rounded))
+                                    .foregroundColor(Theme.accent)
+                                    .contentTransition(.numericText(value: currentActivity))
+                                Text(selectedUnit.label)
+                                    .font(.title3)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 10)
+                    }
+                    
+                    // TARGETS
+                    ModernCard {
+                        HStack {
+                            Text("Smart Targets")
+                                .font(.headline)
+                            Spacer()
+                            Button {
+                                newTargetName = ""
+                                newTargetValue = nil
+                                isAddingTarget = true
+                            } label: {
+                                Label("Add", systemImage: "plus").font(.caption)
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                        Text("Track when this source will reach specific activity levels.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Divider()
+                        if order.savedTargets.isEmpty {
+                            Text("No targets saved.")
+                                .italic()
+                                .foregroundColor(.secondary)
+                                .padding(.vertical, 8)
+                        } else {
+                            ForEach(order.savedTargets) { target in
+                                TargetRow(target: target, currentActivity: currentActivity, currentUnit: selectedUnit, isotope: order.isotope)
+                                Divider()
+                            }
+                        }
+                    }
+                }
+                .padding(.top)
+                .padding(.bottom, 50)
+            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear { selectedUnit = order.unit }
+        
+        .alert("Rename Source", isPresented: $isEditingName) {
+            TextField("Name", text: $newName)
+            Button("Save") {
+                var updated = order
+                updated.referenceName = newName
+                orderStore.update(updated)
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        
+        .alert("Add Target", isPresented: $isAddingTarget) {
+            TextField("Label", text: $newTargetName)
+            TextField("Activity", value: $newTargetValue, format: .number).keyboardType(.decimalPad)
+            Button("Save") {
+                guard let val = newTargetValue, !newTargetName.isEmpty else { return }
+                var updated = order
+                let newT = SavedTarget(name: newTargetName, targetActivity: val, unit: selectedUnit)
+                updated.savedTargets.append(newT)
+                orderStore.update(updated)
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        
+        .onChange(of: selectedUnit) { oldValue, newValue in
+            guard oldValue != newValue else { return }
+            var updated = order
+            updated.unit = newValue
+            updated.calibrationActivity = DecayMath.convert(updated.calibrationActivity, from: oldValue, to: newValue)
+            orderStore.update(updated)
+        }
+    }
+    
+    // MARK: - Activity Logic
+    func togglePin() {
+        var updated = order
+        updated.isPinned.toggle()
+        orderStore.update(updated)
+        
+        if updated.isPinned {
+            startActivity(for: updated)
+        } else {
+            stopActivity()
+        }
+    }
+    
+    // In LiveTrackerView.swift
+
+    func startActivity(for reference: Reference) {
+        // Wrap everything in a Task to ensure we wait for cleanup
+        Task {
+            // Await the cleanup of OLD activities first
+            for activity in Activity<DecayMateWidgetAttributes>.activities {
+                await activity.end(nil, dismissalPolicy: .immediate)
+            }
+            
+            // NOW create the new one safely
+            let attributes = DecayMateWidgetAttributes(
+                isotopeName: reference.isotope.name,
+                isotopeSymbol: reference.isotope.symbol,
+                referenceName: reference.referenceName,
+                calibrationDate: reference.calibrationDate,
+                calibrationActivity: reference.calibrationActivity,
+                halfLife: reference.isotope.halfLifeSeconds
+            )
+            
+            // Calculate initial state
+            let currentAct = DecayMath.solveForActivity(
+                A0: reference.calibrationActivity,
+                halfLife: reference.isotope.halfLifeSeconds,
+                elapsedSeconds: Date().timeIntervalSince(reference.calibrationDate)
+            )
+            
+            let contentState = DecayMateWidgetAttributes.ContentState(
+                currentActivity: currentAct,
+                unit: reference.unit.label
+            )
+            
+            let activityContent = ActivityContent(state: contentState, staleDate: nil)
+            
+            do {
+                let activity = try Activity.request(attributes: attributes, content: activityContent, pushType: nil)
+                print("Live Activity Started Safely: \(activity.id)")
+            } catch {
+                print("Error starting Live Activity: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func stopActivity() {
+        Task {
+            for activity in Activity<DecayMateWidgetAttributes>.activities {
+                await activity.end(nil, dismissalPolicy: .immediate)
+            }
+        }
+    }
+}
+
+// (Helper Structs - AddOrderSheet, TargetRow)
+struct TargetRow: View {
+    let target: SavedTarget
+    let currentActivity: Double
+    let currentUnit: ActivityUnit
+    let isotope: Isotope
+    
+    var body: some View {
+        let targetInCurrentUnit = DecayMath.convert(target.targetActivity, from: target.unit, to: currentUnit)
+        HStack {
+            VStack(alignment: .leading) {
+                Text(target.name).font(.body).fontWeight(.medium)
+                Text("\(String(format: "%.1f", target.targetActivity)) \(target.unit.label)").font(.caption).foregroundColor(.secondary)
+            }
+            Spacer()
+            VStack(alignment: .trailing) {
+                if currentActivity < targetInCurrentUnit {
+                    Text("Passed").font(.caption).fontWeight(.bold).foregroundColor(.gray)
+                } else {
+                    let seconds = DecayMath.solveForTime(currentActivity: currentActivity, targetActivity: targetInCurrentUnit, halfLife: isotope.halfLifeSeconds)
+                    let futureDate = Date().addingTimeInterval(seconds)
+                    Text(futureDate, style: .time).font(.callout).fontWeight(.bold).foregroundColor(Theme.accent)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
 
 struct AddOrderSheet: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var isotopeStore: IsotopeStore
     @ObservedObject var orderStore: OrderStore
-    
     @State private var referenceName = ""
     @State private var selectedIsotope: Isotope
     @State private var activity: Double?
@@ -210,52 +440,26 @@ struct AddOrderSheet: View {
         NavigationView {
             Form {
                 Section("Details") {
-                    TextField("Reference", text: $referenceName)
-                        .focused($isFocused)
-                    
+                    TextField("Reference Name", text: $referenceName).focused($isFocused)
                     Picker("Isotope", selection: $selectedIsotope) {
-                        ForEach(isotopeStore.isotopes) { iso in
-                            Text("\(iso.name) (\(iso.symbol))").tag(iso)
-                        }
+                        ForEach(isotopeStore.isotopes) { iso in Text("\(iso.name) (\(iso.symbol))").tag(iso) }
                     }
                 }
-                
                 Section("Calibration") {
                     HStack {
-                        TextField("Initial Activity", value: $activity, format: .number)
-                            .keyboardType(.decimalPad)
-                            .focused($isFocused)
-                        
-                        Picker("Unit", selection: $unit) {
-                            ForEach(ActivityUnit.allCases) { unit in
-                                Text(unit.label).tag(unit)
-                            }
-                        }
-                        .labelsHidden()
-                        .pickerStyle(.segmented)
-                        .frame(maxWidth: 100)
+                        TextField("Activity", value: $activity, format: .number).keyboardType(.decimalPad).focused($isFocused)
+                        UnitSelector(selectedUnit: $unit)
                     }
-                    
-                    DatePicker("Calibrated At", selection: $calibrationDate)
+                    DatePicker("Date", selection: $calibrationDate)
                 }
             }
             .navigationTitle("New Tracker")
-            .navigationBarTitleDisplayMode(.inline)
-            .scrollDismissesKeyboard(.interactively)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Start Tracking") {
+                    Button("Start") {
                         if let act = activity {
-                            let newOrder = Reference(
-                                referenceName: referenceName,
-                                isotope: selectedIsotope,
-                                calibrationActivity: act,
-                                unit: unit,
-                                calibrationDate: calibrationDate
-                            )
+                            let newOrder = Reference(referenceName: referenceName, isotope: selectedIsotope, calibrationActivity: act, unit: unit, calibrationDate: calibrationDate)
                             orderStore.add(newOrder)
                             dismiss()
                         }
@@ -264,155 +468,5 @@ struct AddOrderSheet: View {
                 }
             }
         }
-    }
-}
-
-// MARK: - Detail View
-
-struct OrderDetailView: View {
-    let order: Reference
-    @Binding var currentTime: Date
-    @ObservedObject var orderStore: OrderStore
-    
-    @State private var selectedUnit: ActivityUnit
-    
-    init(order: Reference, currentTime: Binding<Date>, orderStore: OrderStore) {
-        self.order = order
-        self._currentTime = currentTime
-        self.orderStore = orderStore
-        // Initialize state with the order's unit
-        self._selectedUnit = State(initialValue: order.unit)
-    }
-    
-    var currentActivity: Double {
-        let elapsed = currentTime.timeIntervalSince(order.calibrationDate)
-        return DecayEngine.shared.calculateDecay(
-            A0: order.calibrationActivity,
-            halfLife: order.isotope.halfLifeSeconds,
-            elapsedSeconds: elapsed
-        )
-    }
-    
-    var elapsedString: String {
-        let diff = currentTime.timeIntervalSince(order.calibrationDate)
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.day, .hour, .minute, .second]
-        formatter.unitsStyle = .abbreviated
-        return diff >= 0 ? "+ \(formatter.string(from: diff) ?? "")" : "- \(formatter.string(from: abs(diff)) ?? "")"
-    }
-    
-    var body: some View {
-        ZStack {
-            Theme.bg.ignoresSafeArea()
-            
-            ScrollView {
-                VStack(spacing: 16) {
-                    // Header Card
-                    ModernCard {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Reference")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Text(order.referenceName.isEmpty ? "Unnamed" : order.referenceName)
-                                .font(.title2)
-                                .fontWeight(.bold)
-                            
-                            Divider()
-                            
-                            HStack {
-                                Label(order.isotope.name, systemImage: "atom")
-                                Spacer()
-                                Text(order.isotope.symbol).fontWeight(.bold)
-                            }
-                        }
-                    }
-                    
-                    // Live Stats
-                    ModernCard {
-                        VStack(spacing: 8) {
-                            // Header Row with Title and Switch
-                            HStack {
-                                Text("CURRENT ACTIVITY")
-                                    .font(.caption)
-                                    .fontWeight(.black)
-                                    .foregroundColor(.secondary)
-                                    .tracking(1)
-                                
-                                Spacer()
-                                
-                                // Unit Selector Moved Here
-                                UnitSelector(selectedUnit: $selectedUnit)
-                                    .scaleEffect(0.9) // Slight scale down to fit header nicely
-                            }
-                            
-                            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                                // ROUNDED TO 1 DIGIT
-                                Text(String(format: "%.1f", currentActivity))
-                                    .font(.system(size: 56, weight: .heavy, design: .rounded))
-                                    .foregroundColor(Theme.accent)
-                                    .contentTransition(.numericText(value: currentActivity))
-                                
-                                // Added Text label back since Selector moved
-                                Text(selectedUnit.label)
-                                    .font(.title3)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 20)
-                    }
-                    
-                    // Info Grid
-                    ModernCard {
-                        VStack(spacing: 0) {
-                            // Using order.calibrationActivity ensures we show the updated value
-                            row(icon: "gauge.with.needle", title: "Original Activity", value: "\(String(format: "%.2f", order.calibrationActivity)) \(order.unit.label)")
-                            Divider().padding(.leading, 36)
-                            row(icon: "calendar", title: "Calibration Time", value: order.calibrationDate.formatted(date: .numeric, time: .shortened))
-                            Divider().padding(.leading, 36)
-                            row(icon: "clock", title: "Elapsed Time", value: elapsedString)
-                        }
-                    }
-                }
-                .padding(.top)
-            }
-        }
-        .navigationBarTitleDisplayMode(.inline)
-        // Ensure state stays in sync if order changes externally
-        .onAppear {
-            selectedUnit = order.unit
-        }
-        // Conversion Logic: When unit changes, update the Order in the Store
-        .onChange(of: selectedUnit) { oldValue, newValue in
-            // Prevent redundant updates if unit hasn't effectively changed
-            guard oldValue != newValue else { return }
-            
-            let currentCalibrationVal = order.calibrationActivity
-            let convertedVal = DecayEngine.shared.convert(currentCalibrationVal, from: oldValue, to: newValue)
-            
-            // Create updated order
-            var updatedOrder = order
-            updatedOrder.unit = newValue
-            updatedOrder.calibrationActivity = (convertedVal * 10000).rounded() / 10000
-            
-            // Save to store (this will trigger View updates)
-            orderStore.update(updatedOrder)
-        }
-    }
-    
-    func row(icon: String, title: String, value: String) -> some View {
-        HStack {
-            Image(systemName: icon)
-                .frame(width: 24)
-                .foregroundColor(Theme.accent)
-            Text(title)
-                .foregroundColor(.primary)
-            Spacer()
-            Text(value)
-                .foregroundColor(.secondary)
-                .font(.system(.body, design: .monospaced))
-        }
-        .padding(.vertical, 12)
     }
 }

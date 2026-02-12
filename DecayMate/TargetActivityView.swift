@@ -1,5 +1,5 @@
 //
-//  TargetDoseView.swift
+//  TargetActivityView.swift
 //  DecayMate
 //
 //  Created by Ludovico Pestarino on 25/11/25.
@@ -27,7 +27,8 @@ struct TargetActivityView: View {
         let dose = targetActivity ?? 0.0
         let duration = targetTime.timeIntervalSince(startTime)
         
-        return DecayEngine.shared.calculateRequiredSource(
+        // FIXED: Use DecayMath instead of DecayEngine
+        return DecayMath.solveForInitial(
             targetActivity: dose,
             halfLife: selectedIsotope.halfLifeSeconds,
             durationSeconds: duration
@@ -105,10 +106,11 @@ struct TargetActivityView: View {
             .onTapGesture {
                 isInputFocused = false
             }
-            // Smart Conversion Logic (Updated for iOS 17+)
+            // Smart Conversion Logic
             .onChange(of: unit) { oldValue, newValue in
                 if let currentVal = targetActivity {
-                    let converted = DecayEngine.shared.convert(currentVal, from: oldValue, to: newValue)
+                    // FIXED: Use DecayMath instead of DecayEngine
+                    let converted = DecayMath.convert(currentVal, from: oldValue, to: newValue)
                     targetActivity = (converted * 10000).rounded() / 10000
                 }
             }

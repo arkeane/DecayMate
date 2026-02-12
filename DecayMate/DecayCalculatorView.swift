@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import Charts
 
 struct DecayCalculatorView: View {
-    // Data Source
     @ObservedObject var store: IsotopeStore
     
     // State
@@ -16,9 +16,12 @@ struct DecayCalculatorView: View {
     @State private var initialActivity: Double?
     @State private var unit: ActivityUnit = .mCi
     @State private var referenceDate = Date()
-    @State private var targetDate = Date().addingTimeInterval(3600) // Default +1 hr
+    @State private var targetDate = Date().addingTimeInterval(3600)
     
-    // Focus State for Keyboard
+    // Advanced State: Inverse Calculation
+    @State private var desiredActivity: Double?
+    @State private var showInverseCalc = false
+    
     @FocusState private var isInputFocused: Bool
     
     init(store: IsotopeStore) {
@@ -26,47 +29,67 @@ struct DecayCalculatorView: View {
         _selectedIsotope = State(initialValue: store.isotopes.first ?? Isotope.defaults[0])
     }
     
-    // Computed Result
-    var result: Double {
+    // MARK: - Computations
+    
+    var resultActivity: Double {
         let act = initialActivity ?? 0.0
         let timeDiff = targetDate.timeIntervalSince(referenceDate)
-        return DecayEngine.shared.calculateDecay(
-            A0: act,
-            halfLife: selectedIsotope.halfLifeSeconds,
-            elapsedSeconds: timeDiff
-        )
+        return DecayMath.solveForActivity(A0: act, halfLife: selectedIsotope.halfLifeSeconds, elapsedSeconds: timeDiff)
     }
     
     var decayFactor: Double {
         let timeDiff = targetDate.timeIntervalSince(referenceDate)
-        let decayConstant = 0.69314718056 / selectedIsotope.halfLifeSeconds
-        return exp(-decayConstant * timeDiff)
+        let lambda = PhysicsConstants.ln2 / selectedIsotope.halfLifeSeconds
+        return exp(-lambda * timeDiff)
     }
-
+    
+    // Calculates when the source will decay to 'desiredActivity'
+    var timeToReachDesired: Date? {
+        guard let current = initialActivity, let target = desiredActivity, target < current else { return nil }
+        let secondsNeeded = DecayMath.solveForTime(currentActivity: current, targetActivity: target, halfLife: selectedIsotope.halfLifeSeconds)
+        return referenceDate.addingTimeInterval(secondsNeeded)
+    }
+    
+    // Data points for the Chart
+    var chartData: [DecayDataPoint] {
+        guard let startAct = initialActivity, startAct > 0 else { return [] }
+        
+        let totalDuration = max(abs(targetDate.timeIntervalSince(referenceDate)), selectedIsotope.halfLifeSeconds * 2)
+        let steps = 20
+        let interval = totalDuration / Double(steps)
+        
+        return (0...steps).map { i in
+            let timeOffset = Double(i) * interval
+            let activity = DecayMath.solveForActivity(A0: startAct, halfLife: selectedIsotope.halfLifeSeconds, elapsedSeconds: timeOffset)
+            return DecayDataPoint(secondsOffset: timeOffset, activity: activity)
+        }
+    }
+    
+    // MARK: - Body
+    
     var body: some View {
         NavigationView {
             ZStack {
                 Theme.bg.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // Top Selector
                     IsotopeSelectorHeader(selection: $selectedIsotope, isotopes: store.isotopes)
                     
                     ScrollView {
                         VStack(spacing: 12) {
                             
-                            // Card 1: Input
+                            // 1. Input Card
                             ModernCard {
                                 HStack {
                                     Image(systemName: "flask.fill")
                                         .foregroundColor(Theme.accent)
-                                    Text("Initial Activity")
+                                    Text("Initial Source")
                                         .font(.headline)
                                     Spacer()
                                     UnitSelector(selectedUnit: $unit)
                                 }
                                 
-                                TextField("Enter value", value: $initialActivity, format: .number)
+                                TextField("Enter Activity", value: $initialActivity, format: .number)
                                     .keyboardType(.decimalPad)
                                     .font(.system(size: 32, weight: .bold))
                                     .focused($isInputFocused)
@@ -75,7 +98,7 @@ struct DecayCalculatorView: View {
                                     .cornerRadius(12)
                             }
                             
-                            // Card 2: Time
+                            // 2. Dates Card
                             ModernCard {
                                 HStack {
                                     Image(systemName: "clock.arrow.circlepath")
@@ -83,55 +106,100 @@ struct DecayCalculatorView: View {
                                     Text("Timeline")
                                         .font(.headline)
                                 }
-                                
                                 Divider()
-                                
-                                DatePicker("Calibration Time", selection: $referenceDate)
-                                    .font(.system(.body, design: .rounded))
-                                
-                                DatePicker("Target Time", selection: $targetDate)
-                                    .font(.system(.body, design: .rounded))
-                                
-                                let diff = targetDate.timeIntervalSince(referenceDate)
-                                Text("Delta: \(Formatters.durationFormatter.string(from: diff) ?? "0 min")")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    .frame(maxWidth: .infinity, alignment: .trailing)
+                                DatePicker("Reference Date", selection: $referenceDate)
+                                DatePicker("Calculate For", selection: $targetDate)
                             }
                             
-                            // Card 3: Result
+                            // 3. Visualization Chart (iOS 16+)
+                            if let act = initialActivity, act > 0 {
+                                ModernCard {
+                                    Text("Decay Curve")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                        .textCase(.uppercase)
+                                    
+                                    Chart(chartData) { point in
+                                        LineMark(
+                                            x: .value("Time", point.secondsOffset),
+                                            y: .value("Activity", point.activity)
+                                        )
+                                        .foregroundStyle(Theme.accent.gradient)
+                                        .interpolationMethod(.catmullRom)
+                                        
+                                        AreaMark(
+                                            x: .value("Time", point.secondsOffset),
+                                            y: .value("Activity", point.activity)
+                                        )
+                                        .foregroundStyle(Theme.accent.opacity(0.1))
+                                    }
+                                    .chartXAxis {
+                                        AxisMarks(format: .dateTime.hour()) // Simplification
+                                    }
+                                    .frame(height: 150)
+                                }
+                            }
+                            
+                            // 4. Result Card
                             ModernCard {
                                 ResultDisplay(
                                     title: "Remaining Activity",
-                                    value: result,
+                                    value: resultActivity,
                                     unit: unit.label,
                                     date: targetDate
                                 )
-                                
                                 HStack {
-                                    Text("Decay Factor:")
+                                    Text("Factor: \(String(format: "%.4f", decayFactor))")
                                     Spacer()
-                                    Text(String(format: "%.4f", decayFactor))
-                                        .font(.system(.caption, design: .monospaced))
+                                    // Toggle for inverse calc
+                                    Button("Time to reach X?") {
+                                        withAnimation { showInverseCalc.toggle() }
+                                    }
+                                    .font(.caption)
+                                    .buttonStyle(.bordered)
                                 }
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                                .padding(.top, 4)
+                            }
+                            
+                            // 5. Inverse Calculation (Conditional)
+                            if showInverseCalc {
+                                ModernCard {
+                                    Text("When will it reach...")
+                                        .font(.headline)
+                                    
+                                    TextField("Target Activity", value: $desiredActivity, format: .number)
+                                        .keyboardType(.decimalPad)
+                                        .textFieldStyle(.roundedBorder)
+                                        .focused($isInputFocused)
+                                    
+                                    if let date = timeToReachDesired {
+                                        HStack {
+                                            Text("Date:")
+                                            Spacer()
+                                            Text(date.formatted(date: .abbreviated, time: .shortened))
+                                                .fontWeight(.bold)
+                                                .foregroundColor(Theme.accent)
+                                        }
+                                        .padding(.top, 4)
+                                    } else if let d = desiredActivity, let i = initialActivity, d >= i {
+                                        Text("Target must be lower than initial activity")
+                                            .font(.caption)
+                                            .foregroundColor(.red)
+                                    }
+                                }
+                                .transition(.move(edge: .bottom).combined(with: .opacity))
                             }
                         }
                         .padding(.top)
-                        .padding(.bottom, 100) // Spacing for tab bar
+                        .padding(.bottom, 100)
                     }
                 }
             }
-            .onTapGesture {
-                isInputFocused = false
-            }
-            // Updated syntax for iOS 17+ (using oldValue, newValue)
+            .onTapGesture { isInputFocused = false }
             .onChange(of: unit) { oldValue, newValue in
                 if let currentVal = initialActivity {
-                    let converted = DecayEngine.shared.convert(currentVal, from: oldValue, to: newValue)
-                    // Rounding to 4 decimals to avoid float artifacts
+                    let converted = DecayMath.convert(currentVal, from: oldValue, to: newValue)
                     initialActivity = (converted * 10000).rounded() / 10000
                 }
             }
@@ -140,12 +208,9 @@ struct DecayCalculatorView: View {
     }
 }
 
-// Helper formatter
-struct Formatters {
-    static let durationFormatter: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.day, .hour, .minute]
-        formatter.unitsStyle = .abbreviated
-        return formatter
-    }()
+// Helper for Charts
+struct DecayDataPoint: Identifiable {
+    var id = UUID()
+    let secondsOffset: Double
+    let activity: Double
 }
