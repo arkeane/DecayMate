@@ -41,17 +41,37 @@ struct ModernCard<Content: View>: View {
 }
 
 // MARK: - Unit Selector
+// Changed from Picker to Menu for a cleaner, less cramped UI
 struct UnitSelector: View {
     @Binding var selectedUnit: ActivityUnit
     
     var body: some View {
-        Picker("Unit", selection: $selectedUnit) {
+        Menu {
             ForEach(ActivityUnit.allCases) { unit in
-                Text(unit.label).tag(unit)
+                Button {
+                    selectedUnit = unit
+                } label: {
+                    if unit == selectedUnit {
+                        Label(unit.label, systemImage: "checkmark")
+                    } else {
+                        Text(unit.label)
+                    }
+                }
             }
+        } label: {
+            HStack(spacing: 4) {
+                Text(selectedUnit.label)
+                    .fontWeight(.semibold)
+                    .font(.subheadline)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption2)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color.secondary.opacity(0.1))
+            .cornerRadius(8)
+            .foregroundColor(.primary)
         }
-        .pickerStyle(.segmented)
-        .frame(width: 150)
     }
 }
 

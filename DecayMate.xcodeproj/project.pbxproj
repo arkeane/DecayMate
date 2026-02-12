@@ -8,17 +8,102 @@
 
 /* Begin PBXBuildFile section */
 		D300566E2ED919EB00079DF1 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = D300566C2ED919E700079DF1 /* LICENSE */; };
+		D38287A12F3DECCC001ED4CA /* DecayMateWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D382878B2F3DECCB001ED4CA /* DecayMateWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		D38287AD2F3E03E0001ED4CA /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D382878F2F3DECCB001ED4CA /* SwiftUI.framework */; };
+		D38287AE2F3E03E0001ED4CA /* SwiftUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D382878F2F3DECCB001ED4CA /* SwiftUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D38287B02F3E03E1001ED4CA /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D382878D2F3DECCB001ED4CA /* WidgetKit.framework */; };
+		D38287B12F3E03E1001ED4CA /* WidgetKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D382878D2F3DECCB001ED4CA /* WidgetKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D38287B42F3E0792001ED4CA /* ActivityKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D38287B22F3E078F001ED4CA /* ActivityKit.framework */; };
+		D38287B52F3E0792001ED4CA /* ActivityKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D38287B22F3E078F001ED4CA /* ActivityKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D382879F2F3DECCC001ED4CA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D32B782A2ED62CEB00DE90BE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D382878A2F3DECCB001ED4CA;
+			remoteInfo = DecayMateWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		D38287A22F3DECCC001ED4CA /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				D38287A12F3DECCC001ED4CA /* DecayMateWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D38287AF2F3E03E0001ED4CA /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				D38287B52F3E0792001ED4CA /* ActivityKit.framework in Embed Frameworks */,
+				D38287AE2F3E03E0001ED4CA /* SwiftUI.framework in Embed Frameworks */,
+				D38287B12F3E03E1001ED4CA /* WidgetKit.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		D300566C2ED919E700079DF1 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		D32B78322ED62CEB00DE90BE /* DecayMate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DecayMate.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D382878B2F3DECCB001ED4CA /* DecayMateWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DecayMateWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		D382878D2F3DECCB001ED4CA /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		D382878F2F3DECCB001ED4CA /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		D38287A72F3DECE6001ED4CA /* DecayMateWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DecayMateWidgetExtension.entitlements; sourceTree = "<group>"; };
+		D38287B22F3E078F001ED4CA /* ActivityKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ActivityKit.framework; path = System/Library/Frameworks/ActivityKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		D38287A52F3DECCC001ED4CA /* Exceptions for "DecayMateWidget" folder in "DecayMateWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = D382878A2F3DECCB001ED4CA /* DecayMateWidgetExtension */;
+		};
+		D38287A92F3DEE10001ED4CA /* Exceptions for "DecayMate" folder in "DecayMateWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				RadionuclideModels.swift,
+			);
+			target = D382878A2F3DECCB001ED4CA /* DecayMateWidgetExtension */;
+		};
+		D38287AB2F3DF157001ED4CA /* Exceptions for "DecayMate" folder in "DecayMate" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = D32B78312ED62CEB00DE90BE /* DecayMate */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		D32B78342ED62CEB00DE90BE /* DecayMate */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D38287AB2F3DF157001ED4CA /* Exceptions for "DecayMate" folder in "DecayMate" target */,
+				D38287A92F3DEE10001ED4CA /* Exceptions for "DecayMate" folder in "DecayMateWidgetExtension" target */,
+			);
 			path = DecayMate;
+			sourceTree = "<group>";
+		};
+		D38287912F3DECCB001ED4CA /* DecayMateWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D38287A52F3DECCC001ED4CA /* Exceptions for "DecayMateWidget" folder in "DecayMateWidgetExtension" target */,
+			);
+			path = DecayMateWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -31,6 +116,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D38287882F3DECCB001ED4CA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D38287B42F3E0792001ED4CA /* ActivityKit.framework in Frameworks */,
+				D38287AD2F3E03E0001ED4CA /* SwiftUI.framework in Frameworks */,
+				D38287B02F3E03E1001ED4CA /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -38,8 +133,11 @@
 			isa = PBXGroup;
 			children = (
 				D32B78342ED62CEB00DE90BE /* DecayMate */,
+				D38287912F3DECCB001ED4CA /* DecayMateWidget */,
+				D382878C2F3DECCB001ED4CA /* Frameworks */,
 				D32B78332ED62CEB00DE90BE /* Products */,
 				D300566C2ED919E700079DF1 /* LICENSE */,
+				D38287A72F3DECE6001ED4CA /* DecayMateWidgetExtension.entitlements */,
 			);
 			sourceTree = "<group>";
 		};
@@ -47,8 +145,19 @@
 			isa = PBXGroup;
 			children = (
 				D32B78322ED62CEB00DE90BE /* DecayMate.app */,
+				D382878B2F3DECCB001ED4CA /* DecayMateWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		D382878C2F3DECCB001ED4CA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D38287B22F3E078F001ED4CA /* ActivityKit.framework */,
+				D382878D2F3DECCB001ED4CA /* WidgetKit.framework */,
+				D382878F2F3DECCB001ED4CA /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -61,10 +170,12 @@
 				D32B782E2ED62CEB00DE90BE /* Sources */,
 				D32B782F2ED62CEB00DE90BE /* Frameworks */,
 				D32B78302ED62CEB00DE90BE /* Resources */,
+				D38287A22F3DECCC001ED4CA /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				D38287A02F3DECCC001ED4CA /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				D32B78342ED62CEB00DE90BE /* DecayMate */,
@@ -76,6 +187,29 @@
 			productReference = D32B78322ED62CEB00DE90BE /* DecayMate.app */;
 			productType = "com.apple.product-type.application";
 		};
+		D382878A2F3DECCB001ED4CA /* DecayMateWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D38287A62F3DECCC001ED4CA /* Build configuration list for PBXNativeTarget "DecayMateWidgetExtension" */;
+			buildPhases = (
+				D38287872F3DECCB001ED4CA /* Sources */,
+				D38287882F3DECCB001ED4CA /* Frameworks */,
+				D38287892F3DECCB001ED4CA /* Resources */,
+				D38287AF2F3E03E0001ED4CA /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D38287912F3DECCB001ED4CA /* DecayMateWidget */,
+			);
+			name = DecayMateWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = DecayMateWidgetExtension;
+			productReference = D382878B2F3DECCB001ED4CA /* DecayMateWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -83,11 +217,14 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2610;
-				LastUpgradeCheck = 2610;
+				LastSwiftUpdateCheck = 2620;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					D32B78312ED62CEB00DE90BE = {
 						CreatedOnToolsVersion = 26.1.1;
+					};
+					D382878A2F3DECCB001ED4CA = {
+						CreatedOnToolsVersion = 26.2;
 					};
 				};
 			};
@@ -106,6 +243,7 @@
 			projectRoot = "";
 			targets = (
 				D32B78312ED62CEB00DE90BE /* DecayMate */,
+				D382878A2F3DECCB001ED4CA /* DecayMateWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -119,6 +257,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D38287892F3DECCB001ED4CA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -129,7 +274,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D38287872F3DECCB001ED4CA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D38287A02F3DECCC001ED4CA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D382878A2F3DECCB001ED4CA /* DecayMateWidgetExtension */;
+			targetProxy = D382879F2F3DECCC001ED4CA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		D32B783B2ED62CEB00DE90BE /* Debug */ = {
@@ -191,6 +351,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -248,6 +409,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -258,13 +420,16 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = DecayMate/DecayMate.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = 8RGDGK3T75;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DecayMate/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = DecayMate;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -297,13 +462,16 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = DecayMate/DecayMate.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = 8RGDGK3T75;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DecayMate/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = DecayMate;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -331,6 +499,78 @@
 			};
 			name = Release;
 		};
+		D38287A32F3DECCC001ED4CA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = DecayMateWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 5;
+				DEVELOPMENT_TEAM = 8RGDGK3T75;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DecayMateWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = DecayMateWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = pestarino.io.DecayMate.DecayMateWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		D38287A42F3DECCC001ED4CA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = DecayMateWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 5;
+				DEVELOPMENT_TEAM = 8RGDGK3T75;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DecayMateWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = DecayMateWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = pestarino.io.DecayMate.DecayMateWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -348,6 +588,15 @@
 			buildConfigurations = (
 				D32B783E2ED62CEB00DE90BE /* Debug */,
 				D32B783F2ED62CEB00DE90BE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D38287A62F3DECCC001ED4CA /* Build configuration list for PBXNativeTarget "DecayMateWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D38287A32F3DECCC001ED4CA /* Debug */,
+				D38287A42F3DECCC001ED4CA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
