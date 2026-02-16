@@ -217,8 +217,6 @@ class OrderStore: ObservableObject {
     }
     
     private func load() {
-        // If decoding fails (e.g. older data without isLive), we fall back to empty array
-        // In a production app, we would write a custom init(from: decoder) to handle missing keys.
         if let data = defaults.data(forKey: saveKey),
            let decoded = try? JSONDecoder().decode([Reference].self, from: data) {
             self.references = decoded

@@ -11,11 +11,9 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var isotopeStore = IsotopeStore()
     
-    // We set the default selection to '1', which corresponds to the Decay tab below
     @State private var selection = 1
     
     init() {
-        // Customizing Tab Bar appearance for that "Modern" look
         let appearance = UITabBarAppearance()
         appearance.configureWithDefaultBackground()
         appearance.backgroundColor = UIColor.systemBackground
