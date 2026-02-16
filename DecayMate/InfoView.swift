@@ -43,7 +43,7 @@ struct InfoView: View {
                                     Text("It is for educational and reference purposes only.")
                                         .font(.caption)
                                         .fontWeight(.bold)
-                                        .foregroundColor(.secondary) // Less aggressive color than danger/red
+                                        .foregroundColor(.secondary)
                                         .padding(.top, 4)
                                 }
                             }
@@ -75,9 +75,9 @@ struct InfoView: View {
                             .foregroundColor(.secondary)
                         }
                         
-                        // NEW: Connect / Links Card
+                        // Connect & Legal Card
                         ModernCard {
-                            Text("Connect")
+                            Text("Connect & Legal")
                                 .font(.headline)
                                 .padding(.bottom, 4)
                             
@@ -106,10 +106,29 @@ struct InfoView: View {
                                     title: "GitHub Repository",
                                     url: URL(string: "https://github.com/arkeane/DecayMate")!
                                 )
+                                
+                                Divider().padding(.leading, 32)
+                                
+                                // Open Source License
+                                NavigationLink(destination: LicenseView()) {
+                                    HStack {
+                                        Image(systemName: "doc.text.fill")
+                                            .frame(width: 24)
+                                            .foregroundColor(Theme.accent)
+                                        Text("Open Source License")
+                                            .foregroundColor(.primary)
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .font(.caption2)
+                                            .foregroundColor(Color(uiColor: .tertiaryLabel))
+                                    }
+                                    .padding(.vertical, 12)
+                                    .contentShape(Rectangle())
+                                }
                             }
                         }
                         
-                        Text("© 2025 Ludovico Pestarino")
+                        Text("© 2026 Ludovico Pestarino")
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .padding(.top, 20)
@@ -133,7 +152,7 @@ struct InfoView: View {
                 Spacer()
                 Image(systemName: "arrow.up.right")
                     .font(.caption2)
-                    .foregroundColor(.tertiaryLabel)
+                    .foregroundColor(Color(uiColor: .tertiaryLabel))
             }
             .padding(.vertical, 12)
             .contentShape(Rectangle()) // Makes the whole row tappable
@@ -141,7 +160,48 @@ struct InfoView: View {
     }
 }
 
-// Helper extension for color support in LinkRow
-extension Color {
-    static let tertiaryLabel = Color(uiColor: .tertiaryLabel)
+// MARK: - License View
+struct LicenseView: View {
+    let licenseText = """
+    BSD 3-Clause License
+
+    Copyright (c) 2026, Ludovico Pestarino
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice, this
+       list of conditions and the following disclaimer.
+
+    2. Redistributions in binary form must reproduce the above copyright notice,
+       this list of conditions and the following disclaimer in the documentation
+       and/or other materials provided with the distribution.
+
+    3. Neither the name of the copyright holder nor the names of its
+       contributors may be used to endorse or promote products derived from
+       this software without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+    FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+    DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+    SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+    CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+    OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    """
+    
+    var body: some View {
+        ScrollView {
+            Text(licenseText)
+                .font(.system(.caption, design: .monospaced))
+                .foregroundColor(.secondary)
+                .padding()
+        }
+        .navigationTitle("License")
+        .navigationBarTitleDisplayMode(.inline)
+        .background(Theme.bg.ignoresSafeArea())
+    }
 }
