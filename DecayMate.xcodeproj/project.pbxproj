@@ -44,7 +44,6 @@
 		D382878B2F3DECCB001ED4CA /* DecayMateWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DecayMateWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D382878D2F3DECCB001ED4CA /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		D382878F2F3DECCB001ED4CA /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
-		D38287A72F3DECE6001ED4CA /* DecayMateWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DecayMateWidgetExtension.entitlements; sourceTree = "<group>"; };
 		D38287B22F3E078F001ED4CA /* ActivityKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ActivityKit.framework; path = System/Library/Frameworks/ActivityKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -121,7 +120,6 @@
 				D382878C2F3DECCB001ED4CA /* Frameworks */,
 				D32B78332ED62CEB00DE90BE /* Products */,
 				D300566C2ED919E700079DF1 /* LICENSE */,
-				D38287A72F3DECE6001ED4CA /* DecayMateWidgetExtension.entitlements */,
 			);
 			sourceTree = "<group>";
 		};
@@ -487,7 +485,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CODE_SIGN_ENTITLEMENTS = DecayMateWidgetExtension.entitlements;
+				CODE_SIGN_ENTITLEMENTS = DecayMateWidget/DecayMateWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8RGDGK3T75;
@@ -523,7 +521,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CODE_SIGN_ENTITLEMENTS = DecayMateWidgetExtension.entitlements;
+				CODE_SIGN_ENTITLEMENTS = DecayMateWidget/DecayMateWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8RGDGK3T75;
