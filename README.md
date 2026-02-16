@@ -1,6 +1,8 @@
-# DecayMate ☢️
+<p align="center">
+  <img src="DecayMate.png" alt="DecayMate Icon" width="150">
+</p>
 
-<img src="DecayMate.png" alt="DecayMate Icon" width="150" align="right">
+# DecayMate
 
 DecayMate is a modern iOS application and widget utility designed to calculate the radioactive decay of isotopes based on standard half-life data. Built entirely with SwiftUI, it allows users to track their sources in real-time.
 
