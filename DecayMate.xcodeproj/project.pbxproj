@@ -10,11 +10,8 @@
 		D300566E2ED919EB00079DF1 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = D300566C2ED919E700079DF1 /* LICENSE */; };
 		D38287A12F3DECCC001ED4CA /* DecayMateWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D382878B2F3DECCB001ED4CA /* DecayMateWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D38287AD2F3E03E0001ED4CA /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D382878F2F3DECCB001ED4CA /* SwiftUI.framework */; };
-		D38287AE2F3E03E0001ED4CA /* SwiftUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D382878F2F3DECCB001ED4CA /* SwiftUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D38287B02F3E03E1001ED4CA /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D382878D2F3DECCB001ED4CA /* WidgetKit.framework */; };
-		D38287B12F3E03E1001ED4CA /* WidgetKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D382878D2F3DECCB001ED4CA /* WidgetKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D38287B42F3E0792001ED4CA /* ActivityKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D38287B22F3E078F001ED4CA /* ActivityKit.framework */; };
-		D38287B52F3E0792001ED4CA /* ActivityKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D38287B22F3E078F001ED4CA /* ActivityKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -37,19 +34,6 @@
 				D38287A12F3DECCC001ED4CA /* DecayMateWidgetExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D38287AF2F3E03E0001ED4CA /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				D38287B52F3E0792001ED4CA /* ActivityKit.framework in Embed Frameworks */,
-				D38287AE2F3E03E0001ED4CA /* SwiftUI.framework in Embed Frameworks */,
-				D38287B12F3E03E1001ED4CA /* WidgetKit.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -194,7 +178,6 @@
 				D38287872F3DECCB001ED4CA /* Sources */,
 				D38287882F3DECCB001ED4CA /* Frameworks */,
 				D38287892F3DECCB001ED4CA /* Resources */,
-				D38287AF2F3E03E0001ED4CA /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
