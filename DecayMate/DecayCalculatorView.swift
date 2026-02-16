@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Charts
 
 struct DecayCalculatorView: View {
     @ObservedObject var store: IsotopeStore
@@ -17,10 +16,6 @@ struct DecayCalculatorView: View {
     @State private var unit: ActivityUnit = .mCi
     @State private var referenceDate = Date()
     @State private var targetDate = Date().addingTimeInterval(3600)
-    
-    // Advanced State: Inverse Calculation
-    @State private var desiredActivity: Double?
-    @State private var showInverseCalc = false
     
     @FocusState private var isInputFocused: Bool
     
@@ -41,28 +36,6 @@ struct DecayCalculatorView: View {
         let timeDiff = targetDate.timeIntervalSince(referenceDate)
         let lambda = PhysicsConstants.ln2 / selectedIsotope.halfLifeSeconds
         return exp(-lambda * timeDiff)
-    }
-    
-    // Calculates when the source will decay to 'desiredActivity'
-    var timeToReachDesired: Date? {
-        guard let current = initialActivity, let target = desiredActivity, target < current else { return nil }
-        let secondsNeeded = DecayMath.solveForTime(currentActivity: current, targetActivity: target, halfLife: selectedIsotope.halfLifeSeconds)
-        return referenceDate.addingTimeInterval(secondsNeeded)
-    }
-    
-    // Data points for the Chart
-    var chartData: [DecayDataPoint] {
-        guard let startAct = initialActivity, startAct > 0 else { return [] }
-        
-        let totalDuration = max(abs(targetDate.timeIntervalSince(referenceDate)), selectedIsotope.halfLifeSeconds * 2)
-        let steps = 20
-        let interval = totalDuration / Double(steps)
-        
-        return (0...steps).map { i in
-            let timeOffset = Double(i) * interval
-            let activity = DecayMath.solveForActivity(A0: startAct, halfLife: selectedIsotope.halfLifeSeconds, elapsedSeconds: timeOffset)
-            return DecayDataPoint(secondsOffset: timeOffset, activity: activity)
-        }
     }
     
     // MARK: - Body
@@ -111,36 +84,7 @@ struct DecayCalculatorView: View {
                                 DatePicker("Calculate For", selection: $targetDate)
                             }
                             
-                            // 3. Visualization Chart (iOS 16+)
-                            if let act = initialActivity, act > 0 {
-                                ModernCard {
-                                    Text("Decay Curve")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                        .textCase(.uppercase)
-                                    
-                                    Chart(chartData) { point in
-                                        LineMark(
-                                            x: .value("Time", point.secondsOffset),
-                                            y: .value("Activity", point.activity)
-                                        )
-                                        .foregroundStyle(Theme.accent.gradient)
-                                        .interpolationMethod(.catmullRom)
-                                        
-                                        AreaMark(
-                                            x: .value("Time", point.secondsOffset),
-                                            y: .value("Activity", point.activity)
-                                        )
-                                        .foregroundStyle(Theme.accent.opacity(0.1))
-                                    }
-                                    .chartXAxis {
-                                        AxisMarks(format: .dateTime.hour()) // Simplification
-                                    }
-                                    .frame(height: 150)
-                                }
-                            }
-                            
-                            // 4. Result Card
+                            // 3. Result Card
                             ModernCard {
                                 ResultDisplay(
                                     title: "Remaining Activity",
@@ -149,46 +93,15 @@ struct DecayCalculatorView: View {
                                     date: targetDate
                                 )
                                 HStack {
-                                    Text("Factor: \(String(format: "%.4f", decayFactor))")
+                                    Text("Decay Factor:")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
                                     Spacer()
-                                    // Toggle for inverse calc
-                                    Button("Time to reach X?") {
-                                        withAnimation { showInverseCalc.toggle() }
-                                    }
-                                    .font(.caption)
-                                    .buttonStyle(.bordered)
+                                    Text(String(format: "%.4f", decayFactor))
+                                        .font(.caption)
+                                        .fontWeight(.bold)
+                                        .monospacedDigit()
                                 }
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            }
-                            
-                            // 5. Inverse Calculation (Conditional)
-                            if showInverseCalc {
-                                ModernCard {
-                                    Text("When will it reach...")
-                                        .font(.headline)
-                                    
-                                    TextField("Target Activity", value: $desiredActivity, format: .number)
-                                        .keyboardType(.decimalPad)
-                                        .textFieldStyle(.roundedBorder)
-                                        .focused($isInputFocused)
-                                    
-                                    if let date = timeToReachDesired {
-                                        HStack {
-                                            Text("Date:")
-                                            Spacer()
-                                            Text(date.formatted(date: .abbreviated, time: .shortened))
-                                                .fontWeight(.bold)
-                                                .foregroundColor(Theme.accent)
-                                        }
-                                        .padding(.top, 4)
-                                    } else if let d = desiredActivity, let i = initialActivity, d >= i {
-                                        Text("Target must be lower than initial activity")
-                                            .font(.caption)
-                                            .foregroundColor(.red)
-                                    }
-                                }
-                                .transition(.move(edge: .bottom).combined(with: .opacity))
                             }
                         }
                         .padding(.top)
@@ -204,13 +117,7 @@ struct DecayCalculatorView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("Calculator")
         }
     }
-}
-
-// Helper for Charts
-struct DecayDataPoint: Identifiable {
-    var id = UUID()
-    let secondsOffset: Double
-    let activity: Double
 }
