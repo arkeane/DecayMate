@@ -17,8 +17,8 @@ DecayMate is a modern iOS application and widget utility designed to calculate t
 This application is a physics utility designed for educational and reference purposes only. 
 
 ## Requirements
-* iOS 17.0+ 
-* Xcode 15.0+
+* iOS 26.0+ 
+* Xcode 26.0+
 
 ## License
 This project is licensed under the BSD 3-Clause License. See the [LICENSE](LICENSE) file for details.
